@@ -83,7 +83,9 @@ for gitp in "${GITPATH[@]}"; do
         git branch -r | grep -q upstream
         if [ $? -eq 0 ]; then
             # we have an upstream branch worth tracking
-            RESULT=`git merge upstream/master`
+            URL=`git remote show upstream |awk '/Push/ { print $NF }'`
+            #RESULT=`git merge upstream/master`
+            RESULT=`git pull $URL`
             if [ $? -ne 0 ]; then
                 echo $RESULT
                 ERRCODE=`expr $ERRCODE + 1`
