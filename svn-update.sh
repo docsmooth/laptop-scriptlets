@@ -44,6 +44,7 @@ GITPATH[o++]="/home/rob/workspace/esxidown"
 GITPATH[o++]="/home/rob/workspace/vmware-bumblebee"
 GITPATH[o++]="/home/rob/workspace/branches/pbis"
 GITPATH[o++]="/home/rob/workspace/pebble/laughingman"
+GITPATH[o++]="/home/rob/workspace/creepy"
 GITPATH[o++]="/net/192.168.0.21/home/share/programmers/pbis-branches/pbis"
 GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
