@@ -4,9 +4,17 @@ use strict;
 use warnings;
 use Getopt::Long;
 
+sub safeRegex($) {
+    my $line = shift || die "no line to clean up for regex matching!\n";
+    my $regex = $line;
+    $regex=~s/([\*\[\]\-\(\)\.\?\/\^\\])/\\$1/g;
+#    logDebug("Cleaned up '$line' as '$regex'");
+    return $regex;
+}
+
 sub usage {
     print <<EOF
-log-splitter version 0.1
+log-splitter version 0.2
 This tool reads in a file (filename), and prints out log-<header>#.txt files
 The contents of each of those files is from the "header" value (inclusive) until
 the next "separator" value (excluded).
@@ -51,9 +59,10 @@ my $seen=0;
 my $separator=$opt->{separator};
 my $header = $opt->{header};
 my $outFH;
-my $outfile = $header;
+my $outfile = $filename.".".$header;
 my $i=0;
-$outfile=~s/\s*//g;
+$outfile=~s/[^a-zA-Z0-9\-]*//g;
+$header=safeRegex($header);
 
 open(FH, "<$filename") || die "can't open $filename - $!";
 while(<FH>) { 
