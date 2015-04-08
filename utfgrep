@@ -1,0 +1,5 @@
+#!/bin/bash
+file=$1
+shift
+charset=`file -bi $file |perl -ne '/charset=([^\s]+)/; print uc $1, "\n"'`
+iconv -f $charset -t utf-8 $file | grep $@
