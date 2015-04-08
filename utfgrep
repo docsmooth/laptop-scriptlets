@@ -1,5 +1,86 @@
-#!/bin/bash
-file=$1
-shift
-charset=`file -bi $file |perl -ne '/charset=([^\s]+)/; print uc $1, "\n"'`
-iconv -f $charset -t utf-8 $file | grep $@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $debug = 0;
+my $iconv = `which iconv`;
+my $file = `which file`;
+my $grep = `which grep`;
+chomp $iconv;
+chomp $file;
+chomp $grep;
+$debug && print "Found programs at: $iconv, $file, $grep.\n";
+if ( ! -x "$iconv" ) {
+    die "Can't find an executable iconv: $iconv!";
+}
+if ( ! -x "$file" ) {
+    die "Can't find an executable version of file: $file!";
+}
+if ( ! -x "$grep" ) {
+    die "Can't find an executable version of grep: $grep!";
+}
+open(CH, "$iconv -l |");
+my %charsets;
+while (<CH>) {
+    chomp;
+    if (m|//$|) {
+        #iconv figured out to return programmatic data, not human-readable.
+        s|//$||;
+        $charsets{$_}=1;
+        $debug && print "adding $_ to charsets hash.\n";
+        next;
+    }
+    #the rest is for handling human-readable output from iconv
+    if (! /^\s/) {
+        # no blank space to start line, not part of the list, which looks like...
+        #$ iconv -l
+        #The following list contains all the coded character sets known.  This does
+        #not necessarily mean that all combinations of these names can be used for
+        #the FROM and TO command line parameters.  One coded character set can be
+        #listed with several different names (aliases).
+        #
+        #   437, 500, 500V1, 850, 851, 852, 855, 856, 857, 860, 861, 862, 863, 864, 865,
+        #   866, 866NAV, 869, 874, 904, 1026, 1046, 1047, 8859_1, 8859_2, 8859_3, 8859_4,
+        #...
+        $debug && print "Skipping line: $_\n";
+        next;
+    }
+    my @list=split(/[\s,]+/, $_);
+    my %newhash=map { $_ => 1 } @list;
+    $debug && print join(", ", keys(%newhash)), "\n";
+    %charsets=(%charsets, %newhash);
+}
+close CH;
+# this gives us a list of valid charsets, before we try to use them against iconv.
+# now try to figure out which things are arguments for grep, and which are files...
+my @filelist;
+my $grepargs="";
+my $globlabel="";
+foreach my $arg (@ARGV) {
+    if ( -f "$arg") {
+        push @filelist, $arg;
+    } else {
+        $grepargs.="$arg ";
+    }
+}
+if (scalar @filelist > 1) {
+    $globlabel = "--label=" unless ($grepargs=~/-[a-zA-Z]*h/);
+    $debug && print "adding --label to \$grepargs because of multiple files.\n";
+}
+
+foreach my $entry (@filelist) {
+    my $charset=`file -bi $entry`;
+    my $label="";
+    $charset=~/charset=([^\s]+)/;
+    $charset=uc $1;
+    $debug && print "using charset: $charset, detected from: $filelist[0].\n";
+    die "invalid charset $charset!" unless $charsets{$charset};
+    if ($globlabel) {
+        $label=$globlabel."'$entry' -H"; 
+        $debug && print "using label $label.\n";
+        #this adds the --label only if we've detected multiple files in use
+    }
+    my $cmd="iconv -f $charset -t utf-8 $entry | grep $label $grepargs";
+    $debug && print "running: $cmd\n";
+    print `$cmd`;
+}
