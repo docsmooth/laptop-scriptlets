@@ -59,8 +59,10 @@ my $globlabel="";
 foreach my $arg (@ARGV) {
     if ( -f "$arg") {
         push @filelist, $arg;
+        $debug && print "adding '$arg' to filelist array.\n";
     } else {
         $grepargs.="$arg ";
+        $debug && print "adding '$arg' to grepargs.\n";
     }
 }
 if (scalar @filelist > 1) {
@@ -80,7 +82,10 @@ foreach my $entry (@filelist) {
         $debug && print "using label $label.\n";
         #this adds the --label only if we've detected multiple files in use
     }
-    my $cmd="iconv -f $charset -t utf-8 $entry | grep $label $grepargs";
-    $debug && print "running: $cmd\n";
-    print `$cmd`;
+    my $cmd="iconv -f $charset -t utf-8 '$entry' | grep $label $grepargs";
+    if ($debug) {
+        print "would run: $cmd\n";
+    } else {
+        print `$cmd`;
+    }
 }
