@@ -76,13 +76,26 @@ foreach my $entry (@filelist) {
     $charset=~/charset=([^\s]+)/;
     $charset=uc $1;
     $debug && print "using charset: $charset, detected from: $filelist[0].\n";
-    die "invalid charset $charset!" unless $charsets{$charset};
     if ($globlabel) {
         $label=$globlabel."'$entry' -H"; 
         $debug && print "using label $label.\n";
         #this adds the --label only if we've detected multiple files in use
     }
-    my $cmd="iconv -f $charset -t utf-8 '$entry' | grep $label $grepargs";
+    my $cmd="";
+    unless ($charsets{$charset}) {
+        if ($charset eq "BINARY") {
+            if ($grepargs=~/-[a0zA-Z]*a/) {
+                $cmd="grep $label $grepargs '$entry'";
+            } else {
+                print "ERROR: invalid charset $charset!\n";
+                $cmd="echo ''";
+            }
+        } else {
+            $cmd="echo 'Can't convert charset $charset! Doing nothing with: $entry.'";
+        }
+    } else {
+        $cmd="iconv -f $charset -t utf-8 '$entry' | grep $label $grepargs";
+    }
     if ($debug) {
         print "would run: $cmd\n";
     } else {
