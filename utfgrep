@@ -87,7 +87,7 @@ foreach my $entry (@filelist) {
             if ($grepargs=~/-[a0zA-Z]*a/) {
                 $cmd="grep $label $grepargs '$entry'";
             } else {
-                print "ERROR: invalid charset $charset!\n";
+                print "$entry: ERROR: invalid charset $charset!";
                 $cmd="echo ''";
             }
         } else {
