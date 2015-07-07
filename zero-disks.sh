@@ -9,7 +9,7 @@ else
         export PREFIX="/sbin"
 fi
 
-FileSystem=`egrep '(ext|xfs)' /etc/mtab| awk -F" " '{ print $2 }'`
+FileSystem=`awk -F" " '/(ext|xfs)/ { print $2 }' /etc/mnttab`
 
 for i in $FileSystem
 do
@@ -24,14 +24,14 @@ do
         rm -f $i/zf
 done
 
-VolumeGroup=`$PREFIX/vgdisplay | grep Name | awk -F" " '{ print $3 }'`
+VolumeGroup=`$PREFIX/vgdisplay | awk -F" " '/Name/ { print $3 }'`
 
 for j in $VolumeGroup
 do
         VGFree=`$PREFIX/vgdisplay $j | awk -F" " '/Free/ { print $5 }'`
         if [ ! "x$VGFree" = "x0" ]; then
                 echo $j
-                $PREFIX/lvcreate -l `$PREFIX/vgdisplay $j | grep Free | awk -F" " '{ print $5 }'` -n zero $j
+                $PREFIX/lvcreate -l `$PREFIX/vgdisplay $j | awk -F" " '/Free/ { print $5 }'` -n zero $j
                 if [ -a /dev/$j/zero ]; then
                        cat /dev/zero > /dev/$j/zero
                        /bin/sync
