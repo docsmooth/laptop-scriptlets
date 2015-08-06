@@ -76,7 +76,7 @@ foreach my $entry (@filelist) {
     my $label="";
     $charset=~/charset=([^\s]+)/;
     $charset=uc $1;
-    $debug && print "using charset: $charset, detected from: $filelist[0].\n";
+    $debug && print "using charset: $charset, detected from: $entry.\n";
     if ($globlabel) {
         $label=$globlabel."'$entry' -H"; 
         $debug && print "using label $label.\n";
@@ -92,7 +92,7 @@ foreach my $entry (@filelist) {
                 $cmd="echo ''";
             }
         } else {
-            $cmd="echo 'Can't convert charset $charset! Doing nothing with: $entry.'";
+            $cmd="echo 'Cannot convert charset $charset! Doing nothing with: $entry.'";
         }
     } else {
         $cmd="iconv -f $charset -t utf-8 '$entry' | grep $label $grepargs";
