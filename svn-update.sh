@@ -7,10 +7,38 @@
 # TODO: type the path as svn or git, and call appropriate code
 
 # Set OUTPUT to 1 to print results of update command to STDOUT
-if [ -z "$OUTPUT" ]; then
-    OUTPUT=0
-else
+if [ -n "$OUTPUT" ]; then
     OUTPUT=1
+elif [ `echo $@ | grep -q output` ]; then
+    OUTPUT=1
+else
+    OUTPUT=0
+fi
+
+echo $@ | grep -q workonly
+errcode=$?
+if [ -n "$workonly" ]; then
+    workonly=1
+    echo "Doing only work branches - env."
+elif [ "$errcode" = "0" ]; then
+    workonly=1
+    echo "Doing only work branches - switch."
+else
+    workonly=0
+fi
+unset errcode
+echo $* | grep -q personalonly
+errcode=$?
+if [ -n "$personalonly" ]; then
+    personalonly=1
+    workonly=0
+    echo "Doing only personal branches - env."
+elif [ "$errcode" = "0" ]; then
+    personalonly=1
+    workonly=0
+    echo "Doing only personal branches - switch."
+else
+    personalonly=0
 fi
 # ERRCODE is the default exit status. It is equal to the number of failed updates
 ERRCODE=0
@@ -46,6 +74,19 @@ GITPATH[o++]="/net/192.168.0.21/home/share/programmers/pbis-branches/pbis"
 GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
 for svnp in "${SVNPATH[@]}"; do 
+    echo $svnp | egrep -q '(branches|pbis|Deployment)'
+    if [ $? -eq 0 ]; then
+        #this is a work branch
+        work=1
+    else
+        work=0
+    fi
+    if [ "x$workonly" = "x1" -a "x$work" = "x0" ]; then
+        continue
+    elif [ "x$personalonly" = "x1" -a "x$work" = "x1" ]; then
+        continue
+    fi
+
     if [ -d $svnp ]; then
         cd $svnp
         if [ "$OUTPUT" -eq 1 ]; then
