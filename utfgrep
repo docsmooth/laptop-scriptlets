@@ -4,12 +4,53 @@ use warnings;
 use 5.014;
 
 my $debug = 0;
-my $iconv = `which iconv`;
-my $file = `which file`;
-my $grep = `which grep`;
-chomp $iconv;
-chomp $file;
-chomp $grep;
+
+
+sub findInPath($$) {
+    # finds a particular file in a path
+    # (filename,pathArrayReference) expected input
+    # does an lstat, so returns info from the lstat as well for convenience
+    # returns ref to hash:
+    # hash->{path} = path to file
+    # hash->{type} = file type (file, directory, executable, etc.)
+    # hash->{info} = ref to info{} hash from lstat
+    # if file not found, return $file with undef $file->{path}
+
+    my $filename = shift || die "ERROR: no filename passed for path search!\n";
+    my $paths = shift || die "ERROR: no paths passed to search for $filename!\n";
+    my $file = {};
+
+    foreach my $path (@$paths) {
+        if (-e "$path/$filename") {
+            $file->{info} = stat(_);
+            $file->{perm} = "";
+            $file->{path} = "$path/$filename";
+            $file->{type} = "d" if (-d _);
+            $file->{type} = "f" if (-f _);
+            $file->{type} = "c" if (-c _);
+            $file->{perm} .= "r" if (-r _);
+            $file->{perm} .= "x" if (-x _);
+            $file->{perm} .= "w" if (-w _);
+            $file->{name} = $filename;
+            $file->{dir} = $path;
+            last;
+        }
+    }
+    if (not defined($file->{path})) {
+        $file->{info} = [];
+    }
+    return $file;
+}
+
+my @searchpath=split(/:/, $ENV{PATH});
+
+my $Hash = findInPath("iconv", \@searchpath);
+my $iconv=$Hash->{path};
+$Hash = findInPath("file", \@searchpath);
+my $file=$Hash->{path};
+$Hash = findInPath("grep", \@searchpath);
+my $grep=$Hash->{path};
+
 $debug && print "Found programs at: $iconv, $file, $grep.\n";
 if ( ! -x "$iconv" ) {
     die "Can't find an executable iconv: $iconv!";
