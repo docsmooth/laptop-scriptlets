@@ -1,0 +1,243 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Getopt::Long;
+use File::Basename;
+use Carp;
+use 5.012;
+#use Data::Dumper;
+our $gDebug=0;
+my $gRetval=0;
+my ($k1, $k2);
+
+sub main();
+main();
+exit (0);
+
+sub ERR_UNKNOWN ()      { 1; } #The goal is to never return this, since that's what AutoSys, HP Opsware, and other tools return for general failure - avoids overload
+sub ERR_OPTIONS ()      { 2; }
+sub ERR_OS_INFO ()      { 2; } #Options and OS info are "passed in externally", so send back as same error level
+sub ERR_ACCESS  ()      { 4; }
+sub ERR_FILE_ACCESS ()  { 4; } #"FILE_ACCESS" was used traditionally, been replaced with simple "ACCESS" Keep for backwards compatibility
+sub ERR_SYSTEM_CALL ()  { 8; }
+sub ERR_DATA_INPUT  ()  { 16; }
+sub ERR_LDAP        ()  { 32; }
+sub ERR_NETWORK ()      { 64; }
+sub ERR_CHOWN   ()      { 256; } #some ancient shells return 128 instead of higher-value returns, so we don't define 128 right now.
+sub ERR_STAT    ()      { 512; }
+sub ERR_MAP     ()      { 1024; }
+
+sub usage
+{
+    my $opt = shift;
+    my $scriptName = fileparse($0);
+
+    return <<DATA;
+usage: $scriptName [options]
+
+           This script does a simple diff of 1 column in each of 2 files.
+
+
+           Options:
+
+           -k, --key=#                = Column/KEYDEF to diff on (count from 1)
+           -t, --field-separator=SEP  = use SEP instead of blank as separator
+           -s, --sort                 = sort data before comparing
+           -r, --reverse-sort         = sort data in reverse before comparing
+           -u, --uniq                 = remove duplicate values from KEYDEF
+                                        column (does not care about duplicate
+                                        lines)
+
+           Examples:
+
+           $scriptName -k 2 -t, csv1.csv csv2.csv
+
+DATA
+}
+
+sub compareLines {
+    my $sep=shift;
+    my $line1=shift;
+    my $array2=shift;
+    my $u2=shift;
+    chomp $line1;
+    my @l1=split(/$sep/, $line1);
+    if (exists($u2->{$l1[$k1]})) {
+        $gDebug && print "Found key $l1[$k1] in line $line1 !!\n";
+        return $l1[$k1];
+    }
+    return 0;
+}
+
+sub readFirst {
+    my $sep=shift;
+    my $line1=shift;
+    my $line2=shift;
+    my $a1=shift;
+    my $a2=shift;
+    chomp $line1;
+    chomp $line2;
+    my @l1=split(/$sep/, $line1);  #we already read in line1 to get the separator, now to compare them
+    my @l2=split(/$sep/, $line2);
+    if ($line1) {
+        my $num=scalar @{$a1};
+        push(@{$a1}, {key=> $l1[$k1], line=>$line1, num=>$num});
+    }
+    if ($line2) {
+        my $num=scalar @{$a2};
+        push(@{$a2}, {key=> $l2[$k2], line=>$line2, num=>$num});
+    }
+}
+
+sub getSeparator {
+    my $line=shift;
+    my $file=shift;
+    chomp $line;
+    my $seps={
+        values => {
+            tab => "\t",
+            colon => ":",
+            pipes => "|",
+            comma => '","',  # set comma to be "," as the separator, not just ,, and hope that the data is clear enough
+            semi => ";",
+        }
+    };
+    $seps->{types}->{tab} = () = $line=~/\t/g;
+    $seps->{types}->{colon} = () = $line=~/\:/g;
+    $seps->{types}->{pipes} = () = $line=~/\|/g;
+    $seps->{types}->{comma} = () = $line=~/"\,"/g;
+    $seps->{types}->{semi} = () = $line=~/\;/g;
+    my @topsep=sort { $seps->{types}->{$a} <=> $seps->{types}->{$b} } keys %{$seps->{types}};
+    $gDebug && print "Choosing separator $topsep[-1] with weight $seps->{types}->{$topsep[-1]} for $file\n";
+
+    my $fieldSep = $seps->{values}->{$topsep[-1]} unless not $topsep[-1];
+    return $fieldSep;
+}
+
+sub main()
+{
+
+    Getopt::Long::Configure('no_ignore_case', 'no_auto_abbrev') || confess;
+#	my @names=split(/,DC=/,$fullOU);
+#	my $fullDNS=$names[1];
+#	for (my $i=2; $i<$#names+1; $i++) {
+#		$fullDNS=$fullDNS.".".$names[$i];
+#	}
+
+
+    my $opt = {
+    };
+    my $ok = GetOptions($opt,
+        'help|h|?',
+        'key1|k1=s',
+        'key2|k2=s',
+        'separator|field-separator|f=s',
+        'sort|s!',
+        'reverse|reverse-sort|r!',
+        'uniq|u!',
+        'file1',
+        'file2',
+        'loglevel=s',
+        'debug|d!',
+    );
+    $opt->{file1} = shift @ARGV unless defined($opt->{file1});
+    $opt->{file2} = shift @ARGV unless defined($opt->{file2});
+    my $more = shift @ARGV;
+    my $errors;
+    my @data;
+
+    if ($opt->{help} or not $ok) {
+        die usage($opt);
+    }
+    if ($opt->{key1} xor $opt->{key2}) {
+        $opt->{key1} =1 unless $opt->{key1};
+        $opt->{key2}=1 unless $opt->{key2};
+    }
+
+    my @requireOptions = qw(file1 file2 key1 key2);
+    foreach my $optName (@requireOptions) {
+        if (not $opt->{$optName}) {
+            $errors .= "Missing required --".$optName." option.\n";
+        }
+    }
+    if (defined($opt->{loglevel})) {
+        $gDebug=4 if ($opt->{loglevel}=~/^debug$/i);
+        $gDebug=3 if ($opt->{loglevel}=~/^verbose$/i);
+        $gDebug=2 if ($opt->{loglevel}=~/^info$/i);
+        $gDebug=1 if ($opt->{loglevel}=~/^warning$/i);
+        $gDebug=0 if ($opt->{loglevel}=~/^error$/i);
+        $gDebug=$opt->{loglevel} if ($opt->{loglevel}=~/^\d+$/);
+        $gDebug && print "Logging at $opt->{loglevel} level.\n";
+    }
+    if (defined($opt->{debug}) and $opt->{debug}) {
+        $gDebug=4;
+        print "Debugging enabled...\n";
+    }
+    if ($errors) {
+        $gRetval |= ERR_OPTIONS;
+        print $errors, "\n";
+        die $gRetval;
+    }
+    ($k1, $k2) = ($opt->{key1}-1, $opt->{key2}-1); #set k1 and k2 to the array 0-index, rather than the human 1-index
+    my ($f1, $f2); #filehandles for file1 and file2
+    open($f1, "<", $opt->{file1}) || die "cannot open file $opt->{file1} - $!";
+    open($f2, "<", $opt->{file2}) || die "cannot open file $opt->{file2} - $!";
+    my $line1=<$f1>;
+    my $line2=<$f2>;
+    my $sep=$opt->{separator};
+    if (not $sep) {
+        $gDebug && print "-k not passed, trying to figure keys in files...\n";
+        $sep = getSeparator($line1, $opt->{file1});
+        if ($sep ne getSeparator($line2, $opt->{file2})) {
+            print "ERROR: separator '$sep' from $opt->{file1} does not match the separator '".getSeparator($line2, $opt->{file2})."' from $opt->{file2}! Please manually choose a separator with -f and try again.\n";
+            $gRetval |= ERR_DATA_INPUT;
+            die $gRetval;
+        }
+        if (not $sep) {
+            print "ERROR: couldn't find a separator from $opt->{file1}!\n";
+            $gRetval |= ERR_DATA_INPUT;
+            die $gRetval;
+        }
+    }
+    my ($a1, $a2);
+    my %u2;
+    {
+        chomp $line2;
+        my @x=split(/$sep/, $line2);
+        push @{$a2}, {
+            line=>$line2,
+            num=>scalar(@{$a2}),
+            name=>$x[$k2],
+        };
+        $u2{$x[$k2]}=1;
+    }
+    while(<$f2>) {
+        chomp;
+        my $line2=$_;
+        my @x=split(/$sep/, $line2);
+        if ($opt->{uniq} and $u2{$x[$k2]}) {
+            $gDebug && print "$opt->{file2}: already have seen key $x[$k2], so not adding line: $line2";
+        } else {
+            push @{$a2}, {
+                line=>$line2,
+                num=>scalar(@{$a2}),
+                name=>$x[$k2],
+            };
+            $u2{$x[$k2]}=1;
+        }
+    }
+    if ($opt->{sort}) {
+        $a2 = () = sort { @{$a2}[$a]->{name} <=> @{$a2}[$a]->{name} or @{$a2}[$a]->{name} cmp @{$a2}[$a]->{name} } @{$a2};
+    }
+    while (<$f1>) {
+        chomp;
+        my $line1=$_;
+        my $match=0;
+        $match=compareLines($sep, $line1, $a2, \%u2);
+        if (not $match) {
+            print "+++ $line1\n";
+        }
+    }
+
+}
