@@ -174,11 +174,16 @@ sub main()
         $gDebug=4;
         print "Debugging enabled...\n";
     }
+    if ($opt->{file1} eq $opt->{file2} and $opt->{file1} eq "-" ) {
+        $errors.="Both files can't be STDIN.\n";
+    }
     if ($errors) {
         $gRetval |= ERR_OPTIONS;
         print $errors, "\n";
         die $gRetval;
     }
+    $opt->{file1} = \\*STDIN if ($opt->{file1} eq "-");
+    $opt->{file2} = \\*STDIN if ($opt->{file2} eq "-");
     ($k1, $k2) = ($opt->{key1}-1, $opt->{key2}-1); #set k1 and k2 to the array 0-index, rather than the human 1-index
     my ($f1, $f2); #filehandles for file1 and file2
     open($f1, "<", $opt->{file1}) || die "cannot open file $opt->{file1} - $!";
