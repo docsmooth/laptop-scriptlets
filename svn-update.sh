@@ -49,19 +49,9 @@ MYPATH=`pwd`
 
 #/home/rob/bin/net-tmux
 # Paths where svn repos live.
-SVNPATH[i++]="/home/rob/workspace/Deployment"
-SVNPATH[i++]="/home/rob/workspace/branches/trunk"
-SVNPATH[i++]="/home/rob/workspace/branches/Platform-8.3"
-SVNPATH[i++]="/home/rob/workspace/branches/Enterprise-8.3"
-SVNPATH[i++]="/home/rob/workspace/branches/Platform-8.2"
-SVNPATH[i++]="/home/rob/workspace/branches/Enterprise-8.2"
-SVNPATH[i++]="/home/rob/workspace/branches/Enterprise-7.5"
-SVNPATH[i++]="/home/rob/workspace/branches/Platform-7.5"
 SVNPATH[i++]="/home/rob/workspace/branches/likewise-oem-lexmark"
-SVNPATH[i++]="/net/192.168.0.21/home/share/programmers/pbis-branches/trunk"
-SVNPATH[i++]="/net/192.168.0.21/home/share/programmers/pbis-branches/Enterprise-8.3"
-SVNPATH[i++]="/net/192.168.0.21/home/share/programmers/pbis-branches/Platform-8.3"
 # Paths where git repos live
+GITPATH[o++]="/home/rob/workspace/pbis-deployments"
 GITPATH[o++]="/home/rob/workspace/rainbarf"
 GITPATH[o++]="/home/rob/workspace/siplcs"
 GITPATH[o++]="/home/rob/workspace/esxidown"
