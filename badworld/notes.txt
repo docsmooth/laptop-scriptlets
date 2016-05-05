@@ -1,0 +1,20 @@
+gcc program.c -Wl,-wrap,getObjectName -o program
+
+and define your function as:
+
+const char *__real__(object *anObject)
+{
+    if (anObject == NULL)
+        return "(null)";
+    else
+        return __real_getObjectName( anObject ); // call the real function
+}
+
+extern FILE *__REDIRECT (fopen, (const char *__restrict __filename,
+                 const char *__restrict __modes), fopen64)
+
+
+http://wwwold.cs.umd.edu/Library/TRs/CS-TR-4585/CS-TR-4585.pdf
+
+gcc -fPIC -rdynamic -c badworld.c
+gcc -shared -o libbadworld.so badworld.o -lc -ldl
