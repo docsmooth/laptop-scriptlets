@@ -18,7 +18,8 @@ fi
 
 movie=$1
 #outpath="/home/rob/media/movies/feature"
-outpath="/net/srv1/home/share/media/movies"
+#outpath="/net/srv1/home/share/media/movies"
+outpath="/media/rob/53C5-1DCD"
 
 echo "Ripping $movie from dvd://$video"
 echo "CTRL-C to cancel"

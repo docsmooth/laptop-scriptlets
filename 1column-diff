@@ -207,6 +207,7 @@ sub main()
     }
     my ($a1, $a2);
     my %u2;
+    my %u1;
     {
         chomp $line2;
         my @x=split(/$sep/, $line2);
@@ -241,8 +242,25 @@ sub main()
         my $match=0;
         $match=compareLines($sep, $line1, $a2, \%u2);
         if (not $match) {
-            print "+++ $line1\n";
+            print "--- $line1\n";
+        }
+        my @x=split(/$sep/, $line1);
+        if ($opt->{uniq} and $u1{$x[$k1]}) {
+            $gDebug && print "$opt->{file1}: already have seen key $x[$k1], so not adding line: $line1";
+        } else {
+            push @{$a1}, {
+                line=>$line1,
+                num=>scalar(@{$a1}),
+                name=>$x[$k1],
+            };
+            $u1{$x[$k1]}=1;
         }
     }
-
+    for my $entry (@{$a2}) {
+        my $match=0;
+        $match=compareLines($sep, $entry->{line}, $a1, \%u1);
+        if (not $match) {
+            print "+++ $entry->{line}\n";
+        }
+    }
 }
