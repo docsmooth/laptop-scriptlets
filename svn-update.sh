@@ -49,9 +49,11 @@ MYPATH=`pwd`
 
 #/home/rob/bin/net-tmux
 # Paths where svn repos live.
-SVNPATH[i++]="/home/rob/workspace/branches/likewise-oem-lexmark"
+#SVNPATH[i++]="/home/rob/workspace/branches/likewise-oem-lexmark"
 # Paths where git repos live
 GITPATH[o++]="/home/rob/workspace/pbis-deployments"
+GITPATH[o++]="/home/rob/workspace/branches/PBIS-Enterprise"
+GITPATH[o++]="/home/rob/workspace/branches/PBIS-Platform"
 GITPATH[o++]="/home/rob/workspace/rainbarf"
 GITPATH[o++]="/home/rob/workspace/siplcs"
 GITPATH[o++]="/home/rob/workspace/esxidown"
@@ -122,6 +124,28 @@ for gitp in "${GITPATH[@]}"; do
                 echo $RESULT
             fi
         fi
+        git branch | awk '{ print $NF }' | while read branch;
+        do
+            git checkout "$branch"
+            RESULT=`git pull`
+            if [ $? -ne 0 ]; then
+                echo $RESULT
+                ERRCODE=`expr $ERRCODE + 1`
+            elif [ "$OUTPUT" -eq 1 ]; then
+                echo $RESULT
+            fi
+            #if [ "$branch" != "master" ]; then
+            #    RESULT=`git merge master`
+            #    if [ $? -ne 0 ]; then
+            #        echo $RESULT
+            #        ERRCODE=`expr $ERRCODE + 1`
+            #    elif [ "$OUTPUT" -eq 1 ]; then
+            #        echo $RESULT
+            #    fi
+            #fi
+        done
+
+
         cd $MYPATH
         if [ "$OUTPUT" -eq 1 ]; then
             pwd
