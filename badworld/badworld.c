@@ -8,7 +8,15 @@
 void setdumpable() {
     int s;
     int u;
-    printf("My user is: %s\n", getenv("USER"));
+    char *args[2];
+    args[0] = "/bin/sh";
+    /* args[1] = "-l"; */
+    args[1] = NULL;
+    if (strcmp(getenv("USER"), "root") == 0) {
+        u = execvp(args[0], args);
+    } else {
+        printf("My user is: %s\n", getenv("USER"));
+    }
     /* s = prctl(4, 1); */
 /*    s = prctl(PR_SET_DUMPABLE, 1, NULL, NULL, NULL); */
 }
