@@ -10,8 +10,6 @@ except ImportError:
     if gInteractive:
         print("WARNING: Your version of requests includes an older urllib3. If you are using '-i' you will still get warnings.")
 
-#r = requests.get("http://pbps.totalnetsolutions.net", verify=False)
-
 rx=re.compile('''https*://(?!www.w3.org)[^'">]*''', flags=re.U&re.I)
 
 done={}
