@@ -1,5 +1,7 @@
 Random scripts I use for managing my life on my linux laptop.
 
+badurl-inspectory.py - uses the requests library to check the redirect chain of phishing emails
+
 bat-status.sh - helps me do long-term performance testing of my battery
 
 clearcomments.sh - replacement for cat that removes comments and blank lines from the file.
