@@ -1,6 +1,12 @@
 #!/usr/bin/python3
 import requests, re, sys
 requests.packages.urllib3.disable_warnings()
+
+gInteractive=True
+if not (sys.stdout.isatty() and sys.stdin.isatty()):
+    #Are in some kind of pipeline, so disabling interactive input.
+    gInteractive=False
+
 try:
     from requests.packages.urllib3.exceptions import InsecureRequestWarning
     from requests.packages.urllib3.exceptions import SubjectAltNameWarning
@@ -22,11 +28,20 @@ def printall(groups):
                 print(group)
                 if rx.match(group):
                     done[group]=True
-                    r=requests.get(group, verify=False)
-                    if r.url != group:
-                        print(r.url)
-                    j=rx.findall(r.text)
-                    printall(j)
+                    r=None
+                    try:
+                        r=requests.get(group, verify=False)
+                    except ConnectionResetError:
+                        print("Connection reset connecting to group!")
+                        done[group]=True
+                    except ConnectionError:
+                        print("Generic connection error connecting to {0}!".format(group))
+                        done[group]=True
+                    if r:
+                        if r.url != group:
+                            print(r.url)
+                        j=rx.findall(r.text)
+                        printall(j)
     else:
         print("wasn't passed a list, continuing.")
 print(sys.argv[1:])
