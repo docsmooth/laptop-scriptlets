@@ -36,9 +36,6 @@ def printall(groups):
                     except ConnectionResetError:
                         print("Connection reset connecting to: {0}!".format(group))
                         done[group]=True
-                    except requests.exceptions.ConnectionResetError:
-                        print("Connection reset connecting to: {0}!".format(group))
-                        done[group]=True
                     except ConnectionError:
                         print("Generic connection error connecting to {0}!".format(group))
                         done[group]=True
