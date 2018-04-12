@@ -63,6 +63,7 @@ GITPATH[o++]="/home/rob/workspace/branches/pbis"
 GITPATH[o++]="/home/rob/workspace/pebble/laughingman"
 GITPATH[o++]="/home/rob/workspace/creepy"
 GITPATH[o++]="/home/rob/workspace/solarized"
+GITPATH[o++]="/home/rob/workspace/onedrive"
 GITPATH[o++]="/net/192.168.0.21/home/share/programmers/pbis-branches/pbis"
 GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
@@ -145,12 +146,10 @@ for gitp in "${GITPATH[@]}"; do
             #    fi
             #fi
         done
+        git checkout master
 
-
+        pwd
         cd $MYPATH
-        if [ "$OUTPUT" -eq 1 ]; then
-            pwd
-        fi
     fi
 done
 
