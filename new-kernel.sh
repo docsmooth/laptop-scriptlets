@@ -32,8 +32,18 @@ else
     echo "skipping download of new kernel - it already exists locally"
 fi
 tar -Jxf ./linux-$version.tar.xz
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to extract ./linux-$version.tar.xz - did it download correctly?"
+    exit 2
+fi
+rm /usr/src/linux
 ln -s /usr/src/linux-$version /usr/src/linux
+linkstatus=$?
 cd linux
+if [ $? -ne 0 -o $linkstatus -ne 0 ]; then
+    echo "ERROR: could not update /usr/src/linux symclink to new version!"
+    exit 2
+fi
 currentkernel=`uname -r`
 echo $currentkernel | grep -q generic
 if [ $? -eq 0 ]; then
