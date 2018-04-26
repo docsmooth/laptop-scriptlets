@@ -64,6 +64,8 @@ GITPATH[o++]="/home/rob/workspace/pebble/laughingman"
 GITPATH[o++]="/home/rob/workspace/creepy"
 GITPATH[o++]="/home/rob/workspace/solarized"
 GITPATH[o++]="/home/rob/workspace/onedrive"
+GITPATH[o++]="/home/rob/workspace/rainbowstream"
+GITPATH[o++]="/home/rob/workspace/rtm-cli"
 GITPATH[o++]="/net/192.168.0.21/home/share/programmers/pbis-branches/pbis"
 GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 

@@ -74,7 +74,7 @@ if [ $? -ne 0 ]; then
 fi
 df -h
 time make-kpkg --rootcmd fakeroot --initrd --append-to-version=.$TODAY --jobs 4 kernel_image kernel_headers > ../$TODAY.log
-result=$
+result=$?
 if [ "x$result" = "x0" ]; then 
     sudo dpkg -i /usr/src/linux-image-$version.*.deb /usr/src/linux-headers-$version.*.deb
     result=$?
