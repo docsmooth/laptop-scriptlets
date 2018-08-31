@@ -125,7 +125,7 @@ Get-ChildItem $Path -Filter “*.rdp” |
             $serverElement.name = $ServerList[-2]
             $serverElement.displayName = $UserList[-1]
             $serverElement.connectionSettings.port = $ServerList[-1]
-            $serverElement.logonCredentials.userName = $UserLine
+            $serverElement.logonCredentials.userName = "\" + $UserLine
             $serverElement.logonCredentials.domain = ""
             if ($displayName -eq $true) {
                 $serverElement.displayName = $UserList[-2] + "@" + $UserList[-1]
