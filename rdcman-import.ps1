@@ -17,6 +17,8 @@ if ($help) {
 Import RDP files from PBPS DirectConnect into 
 RDCMan XML format.
 
+Modified from Stuart Leeks: https://gist.github.com/stuartleeks/8436568
+
 Run as:
 .\rdcman-import.ps1 -Path <path-to-RDP files>
 
