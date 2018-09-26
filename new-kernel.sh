@@ -1,7 +1,7 @@
 #!/bin/dash
 
 version=$1
-oldkernel=$2
+oldconfig=$2
 
 TODAY=`date '+%Y%m%d'`
 if [ -z "$JOBS" ]; then
@@ -44,28 +44,48 @@ if [ $? -ne 0 -o $linkstatus -ne 0 ]; then
     echo "ERROR: could not update /usr/src/linux symclink to new version!"
     exit 2
 fi
-currentkernel=`uname -r`
-echo $currentkernel | grep -q generic
-if [ $? -eq 0 ]; then
-    # this is a generic kernel, not one of mine, so we don't want to use that as the base for our automatic config
-    if [ -z "$2" ]; then
-        echo "Currently running a generic kernel, and a previous config wasn't passed as option 2!"
-        echo "Please re-run as '$0 $version /usr/src/oldconfig'"
-        exit 2
+if [ -z "$oldconfig" ]; then
+    currentkernel=`uname -r`
+    echo $currentkernel | grep -q generic
+    if [ $? -eq 0 ]; then
+        # this is a generic kernel, not one of mine, so we don't want to use that as the base for our automatic config
+        if [ -z "$2" ]; then
+            echo "Currently running a generic kernel, and a previous config wasn't passed as option 2!"
+            echo "Please re-run as '$0 $version /usr/src/oldconfig'"
+            exit 2
+        fi
+        if [ ! -r "$2" ]; then
+            echo "Can't read $2 as an old config!"
+            echo "Please re-run as '$0 $version /usr/src/oldconfig'"
+            exit 2
+        fi
+    else
+        oldconfig=/boot/config-$currentkernel
     fi
-    if [ ! -r "$2" ]; then
-        echo "Can't read $2 as an old config!"
-        echo "Please re-run as '$0 $version /usr/src/oldconfig'"
-        exit 2
-    fi
-else
-    oldkernel=/boot/config-$currentkernel
 fi
-if [ ! -r "$oldkernel" ]; then
-    echo "ERROR: Even after all that, we can't read $oldkernel!"
+if [ ! -r "$oldconfig" ]; then
+    echo "ERROR: Even after all that, we can't read $oldconfig!"
     exit 2
 fi
-cp $oldkernel /usr/src/linux/.config
+cp $oldconfig /usr/src/linux/.config
+
+#Try to add MuQSS patch
+muqsspatch=`ls -rt /usr/src/bfs/*Multi* |tail -1`
+if [ -n "$muqsspatch" ]; then
+    # we have a patch, but is it right?  From CK's versioning, I don't know how to tell
+    # maybe we should wget the latest every time from his site instead of reading here.
+    # TODO
+    # so in the meantime...
+    cd /usr/src/linux
+    output=`patch -p1 < ${muqsspatch}`
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Can't patch MuQSS into this kernel."
+        echo "patch -p1 < ${muqsspatch}"
+        echo $output
+        exit 2
+    fi
+fi
+
 cd /usr/src/linux
 make oldconfig
 if [ $? -ne 0 ]; then
@@ -73,7 +93,7 @@ if [ $? -ne 0 ]; then
     exit 4
 fi
 df -h
-time make-kpkg --rootcmd fakeroot --initrd --append-to-version=.$TODAY --jobs 4 kernel_image kernel_headers > ../$TODAY.log
+time make-kpkg --rootcmd fakeroot --initrd --append-to-version=.$TODAY --jobs ${JOBS}  kernel_image kernel_headers > ../$TODAY.log
 result=$?
 if [ "x$result" = "x0" ]; then 
     sudo dpkg -i /usr/src/linux-image-$version.*.deb /usr/src/linux-headers-$version.*.deb
