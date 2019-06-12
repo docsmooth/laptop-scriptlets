@@ -3,6 +3,10 @@
 version=$1
 oldconfig=$2
 
+if [ -z "$FUZZ" ]; then
+    FUZZ=2
+fi
+
 TODAY=`date '+%Y%m%d'`
 if [ -z "$JOBS" ]; then
     JOBS=4
@@ -22,9 +26,15 @@ if [ $? -eq 0 ]; then
 fi
 cd /usr/src
 if [ ! -f ./linux-$version.tar.xz ]; then
-    wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$version.tar.xz
+    echo $version | egrep -q '^4\.'
+    if [ $? -eq 0 ]; then
+        verspath="v4.x"
+    else
+        verspath="v5.x"
+    fi
+    wget https://cdn.kernel.org/pub/linux/kernel/${verspath}/linux-$version.tar.xz
     if [ $? -ne 0 ]; then
-        echo "FAILED Downloading https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$version.tar.xz"
+        echo "FAILED Downloading https://cdn.kernel.org/pub/linux/kernel/${verspath}/linux-$version.tar.xz"
         echo "Please check the version and try again."
         exit 2
     fi
@@ -77,7 +87,7 @@ if [ -n "$muqsspatch" ]; then
     # TODO
     # so in the meantime...
     cd /usr/src/linux
-    output=`patch -p1 < ${muqsspatch}`
+    output=`patch -F $FUZZ -p1 < ${muqsspatch}`
     if [ $? -ne 0 ]; then
         echo "ERROR: Can't patch MuQSS into this kernel."
         echo "patch -p1 < ${muqsspatch}"

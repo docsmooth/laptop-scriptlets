@@ -60,14 +60,13 @@ GITPATH[o++]="/home/rob/workspace/esxidown"
 GITPATH[o++]="/home/rob/workspace/vmware-bumblebee"
 GITPATH[o++]="/home/rob/workspace/vmware-patch"
 GITPATH[o++]="/home/rob/workspace/branches/pbis"
-GITPATH[o++]="/home/rob/workspace/pebble/laughingman"
+#GITPATH[o++]="/home/rob/workspace/pebble/laughingman"
 GITPATH[o++]="/home/rob/workspace/creepy"
 GITPATH[o++]="/home/rob/workspace/solarized"
 GITPATH[o++]="/home/rob/workspace/onedrive"
 GITPATH[o++]="/home/rob/workspace/rainbowstream"
 GITPATH[o++]="/home/rob/workspace/rtm-cli"
 GITPATH[o++]="/home/rob/workspace/wtf-console"
-GITPATH[o++]="/net/192.168.0.21/home/share/programmers/pbis-branches/pbis"
 GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
 for svnp in "${SVNPATH[@]}"; do 
@@ -104,9 +103,9 @@ for svnp in "${SVNPATH[@]}"; do
 done
 
 for gitp in "${GITPATH[@]}"; do
-    if [ -d $gitp ]; then
-        cd $gitp
-        if [ "$OUTPUT" -eq 1 ]; then
+    if [ -d "$gitp" ]; then
+        cd "$gitp"
+        if [ $OUTPUT -eq 1 ]; then
             pwd
         fi
         RESULT=`git pull`
@@ -121,11 +120,11 @@ for gitp in "${GITPATH[@]}"; do
             # we have an upstream branch worth tracking
             URL=`git remote show upstream |awk '/Push/ { print $NF }'`
             #RESULT=`git merge upstream/master`
-            RESULT=`git pull $URL`
+            RESULT=`git pull "$URL"`
             if [ $? -ne 0 ]; then
                 echo $RESULT
                 ERRCODE=`expr $ERRCODE + 1`
-            elif [ "$OUTPUT" -eq 1 ]; then
+            elif [ $OUTPUT -eq 1 ]; then
                 echo $RESULT
             fi
         fi
@@ -136,7 +135,7 @@ for gitp in "${GITPATH[@]}"; do
             if [ $? -ne 0 ]; then
                 echo $RESULT
                 ERRCODE=`expr $ERRCODE + 1`
-            elif [ "$OUTPUT" -eq 1 ]; then
+            elif [ $OUTPUT -eq 1 ]; then
                 echo $RESULT
             fi
             #if [ "$branch" != "master" ]; then
