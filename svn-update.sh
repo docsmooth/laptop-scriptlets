@@ -67,6 +67,8 @@ GITPATH[o++]="/home/rob/workspace/onedrive"
 GITPATH[o++]="/home/rob/workspace/rainbowstream"
 GITPATH[o++]="/home/rob/workspace/rtm-cli"
 GITPATH[o++]="/home/rob/workspace/wtf-console"
+GITPATH[o++]="/home/rob/workspace/exrex"
+GITPATH[o++]="/home/rob/workspace/grive2"
 GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
 for svnp in "${SVNPATH[@]}"; do 

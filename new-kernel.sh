@@ -80,7 +80,13 @@ fi
 cp $oldconfig /usr/src/linux/.config
 
 #Try to add MuQSS patch
+# there are two possibilities - MuQSS only, or full CK.
+# so let's try both:
 muqsspatch=`ls -rt /usr/src/bfs/*Multi* |tail -1`
+shortvers=`echo $version | sed -e 's/\.[0-9]*$//'`
+if [ -f "/usr/src/bfs/*${shortvers}-ck1" ]; then
+    muqsspatch="/usr/src/bfs/*${shortvers}-ck1"
+fi
 if [ -n "$muqsspatch" ]; then
     # we have a patch, but is it right?  From CK's versioning, I don't know how to tell
     # maybe we should wget the latest every time from his site instead of reading here.
@@ -90,7 +96,7 @@ if [ -n "$muqsspatch" ]; then
     output=`patch -F $FUZZ -p1 < ${muqsspatch}`
     if [ $? -ne 0 ]; then
         echo "ERROR: Can't patch MuQSS into this kernel."
-        echo "patch -p1 < ${muqsspatch}"
+        echo "patch -F $FUZZ -p1 < ${muqsspatch}"
         echo $output
         exit 2
     fi
