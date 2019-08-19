@@ -7,7 +7,7 @@ use 5.014;
 # Theoretically supports all flags of grep.
 
 my $debug = 0;
-
+if ($ENV{'DEBUG'}) { $debug=1; };
 
 sub findInPath($$) {
     # finds a particular file in a path
@@ -120,6 +120,10 @@ foreach my $entry (@filelist) {
     my $label="";
     $charset=~/charset=([^\s]+)/;
     $charset=uc $1;
+    if ($ENV{'CHARSET'}) {
+        $debug && print "overriding charset $charset with $ENV{'CHARSET'}.\n";
+        $charset=uc $ENV{'CHARSET'};
+    }
     $debug && print "using charset: $charset, detected from: $entry.\n";
     if ($globlabel) {
         $label=$globlabel."'$entry' -H"; 
