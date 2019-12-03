@@ -9,7 +9,7 @@ fi
 
 TODAY=`date '+%Y%m%d'`
 if [ -z "$JOBS" ]; then
-    JOBS=4
+    JOBS=10
 fi
 
 if [ -z "$version" ]; then
