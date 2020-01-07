@@ -76,6 +76,7 @@ GITPATH[o++]="/home/rob/workspace/algo"
 GITPATH[o++]="/home/rob/workspace/rtm"
 GITPATH[o++]="/home/rob/workspace/vmware-host-modules"
 GITPATH[o++]="/home/rob/workspace/pytappd"
+GITPATH[o++]="/home/rob/workspace/tac_plus"
 #GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
 for svnp in "${SVNPATH[@]}"; do 
