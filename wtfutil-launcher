@@ -1,0 +1,82 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+use Term::ReadKey;
+
+$ENV{'WTF_GITHUB_TOKEN'}="9112d51f991fc599ea9e68fbe94aa46a08bfee30";
+my $config=$ENV{"HOME"}."/.config/wtf/config.yml";
+my $ocolumns=3; #(0-indexed)
+my $orows=3; #(0-indexed)
+
+# end of user edits
+
+my ($columns, $rows)=($ocolumns,$orows);
+
+open(my $cf, "<", $config) || die "Can't read $config !! - $!";
+while(<$cf>) {
+    chomp;
+    if ($_=~/left:\s*(\d+)/) {
+        if ($1 > $ocolumns) {
+            print "found $1 columns is more than $ocolumns.\n";
+            $columns=$1;
+        }
+    } elsif ($_=~/top:\s*(\d+)/) {
+        if ($1 > $orows) {
+            print "found $1 rows is more than $orows.\n";
+            $rows=$1;
+        }
+    }
+
+}
+sub safeRegex($) {
+    my $line = shift || die "no line to clean up for regex matching!\n";
+    my $regex = $line;
+    $regex=~s/([\*\[\]\-\(\)\.\?\/\^\\])/\\$1/g;
+    return $regex;
+}
+
+my ($wchar, $hchar, $wpixels, $hpixels) = GetTerminalSize();
+my $col=sprintf("%d", $wchar/($columns+1));
+my $row=sprintf("%d", $hchar/($rows+1));
+print "$wchar x $hchar results in: $col x $row\n";
+
+my $columnsLine=("$col, "x($columns+1));
+$columnsLine=~s/,\s*$//;
+$columnsLine="    columns: [".$columnsLine."]\n";
+my $rowsLine=("$row, "x($rows+1));
+$rowsLine=~s/,\s*$//;
+$rowsLine="    rows: [".$rowsLine."]\n";
+
+#print $columnsLine, $rowsLine;
+
+my $error = "";
+my $data="";
+{
+    local @ARGV=($config);
+    local $^I = '.lwd'; # <-- turns on inplace editing (d for delete)
+    my $cregex = safeRegex("columns: [");
+    my $rregex = safeRegex("rows: [");
+    while (<>) {
+        if (/^[#;]+\s*($cregex|$rregex)/) {
+            $data.= "Found '$cregex' or '$rregex' commented out in $config, leaving alone.";
+            print;
+        } elsif (s/^\s*$rregex.*/$rowsLine/) {
+            $data.= "Found '$rregex' in $config, replacing with $rowsLine";
+            $error = "found";
+            print;
+        } elsif (s/^\s*$cregex.*/$columnsLine/) {
+            $data.= "Found '$cregex' in $config, replacing with $columnsLine";
+            $error = "found";
+            print;
+        } else {
+            print;
+        }
+    }
+}
+print ($data) if ($data);
+if (defined($error) && $error ne "found") {
+    print ("Could not find either regex in $config.");
+}
+
+exec($ENV{'HOME'}.'/workspace/wtf-console/wtf_0.25.0_linux_amd64/wtfutil');
