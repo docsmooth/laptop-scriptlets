@@ -3,7 +3,7 @@
 # Ubuntu from https://jimangel.io/post/create-a-vm-template-ubuntu-18.04/
 
 release=`awk -F= '/DISTRIB_ID=/ { print $NF }' /etc/lsb-release`
-if [ -n "$release" ]; then
+if [ -z "$release" ]; then
 	release=`awk '/(Cent|Red)/ { print $1 }' /etc/redhat-release`
 fi
 
