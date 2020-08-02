@@ -84,8 +84,8 @@ cp $oldconfig /usr/src/linux/.config
 # so let's try both:
 muqsspatch=`ls -rt /usr/src/bfs/*Multi* |tail -1`
 shortvers=`echo $version | sed -e 's/\.[0-9]*$//'`
-if [ -f "/usr/src/bfs/*${shortvers}-ck1" ]; then
-    muqsspatch="/usr/src/bfs/*${shortvers}-ck1"
+if [ -f "/usr/src/bfs/patch-${shortvers}-ck1" ]; then
+    muqsspatch="/usr/src/bfs/patch-${shortvers}-ck1"
 fi
 if [ -n "$muqsspatch" ]; then
     # we have a patch, but is it right?  From CK's versioning, I don't know how to tell
@@ -109,10 +109,13 @@ if [ $? -ne 0 ]; then
     exit 4
 fi
 df -h
-time make-kpkg --rootcmd fakeroot --initrd --append-to-version=.$TODAY --jobs ${JOBS}  kernel_image kernel_headers > ../$TODAY.log
+compilecmd="make-kpkg --rootcmd fakeroot --initrd --append-to-version=.$TODAY --jobs ${JOBS}  kernel_image kernel_headers"
+logfile="../$TODAY.log"
+echo "$compilecmd > $logfile"
+time $compilecmd > $logfile
 result=$?
 if [ "x$result" = "x0" ]; then 
-    sudo dpkg -i /usr/src/linux-image-$version.*.deb /usr/src/linux-headers-$version.*.deb
+    sudo dpkg -i /usr/src/linux-image-$version{.,-}*.deb /usr/src/linux-headers-$version.*.deb
     result=$?
 else
     echo "ERROR: Build failed!  Check /usr/src/$TODAY.log"
