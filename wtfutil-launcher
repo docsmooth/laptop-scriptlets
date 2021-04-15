@@ -42,10 +42,10 @@ print "$wchar x $hchar results in: $col x $row\n";
 
 my $columnsLine=("$col, "x($columns+1));
 $columnsLine=~s/,\s*$//;
-$columnsLine="    columns: [".$columnsLine."]\n";
+$columnsLine="    columns: [".$columnsLine."]";
 my $rowsLine=("$row, "x($rows+1));
 $rowsLine=~s/,\s*$//;
-$rowsLine="    rows: [".$rowsLine."]\n";
+$rowsLine="    rows: [".$rowsLine."]";
 
 #print $columnsLine, $rowsLine;
 
@@ -78,7 +78,7 @@ if (defined($error) && $error ne "found") {
     print ("Could not find either regex in $config.");
 }
 
-exec($ENV{'HOME'}.'/workspace/wtf-console/wtf_0.31.0_linux_amd64/wtfutil');
+exec($ENV{'HOME'}.'/workspace/wtf-console/wtf_0.36.0_linux_amd64/wtfutil');
 
 =pod
 
