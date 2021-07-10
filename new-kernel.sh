@@ -109,7 +109,8 @@ if [ $? -ne 0 ]; then
     exit 4
 fi
 df -h
-compilecmd="make-kpkg --rootcmd fakeroot --initrd --append-to-version=.$TODAY --jobs ${JOBS}  kernel_image kernel_headers"
+#compilecmd="make-kpkg --rootcmd fakeroot --initrd --append-to-version=.$TODAY --jobs ${JOBS}  kernel_image kernel_headers"
+compilecmd="fakeroot make -j ${JOBS} deb-pkg"
 logfile="../$TODAY.log"
 echo "$compilecmd > $logfile"
 time $compilecmd > $logfile
