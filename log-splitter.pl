@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use 5.012;
 
 sub safeRegex($) {
     my $line = shift || die "no line to clean up for regex matching!\n";
@@ -55,18 +56,22 @@ if (not $ok or $more) {
 
 my $filename=$opt->{filename};
 my $seen=0;
-
+my $debug=1;
 my $separator=$opt->{separator};
 my $header = $opt->{header};
 my $outFH;
 my $outfile = $filename.".".$header;
+my $newfile=$outfile;
 my $i=0;
 $outfile=~s/[^a-zA-Z0-9\-]*//g;
 $header=safeRegex($header);
 
-open(FH, "<$filename") || die "can't open $filename - $!";
+#open(FH, "<:encoding(UTF-16LE)", $filename) || die "can't open $filename - $!";
+open(FH, "<", $filename) || die "can't open $filename - $!";
 while(<FH>) { 
+    $_=~s/[\t\r\n]+$//;
     if (/$separator/ && $seen == 1) {
+        $debug && print "Found separator, closing $newfile.\n";
         $seen=0;
         $i++;
         if ($outFH) {
@@ -74,13 +79,20 @@ while(<FH>) {
             undef $outFH;
         }
     }; 
-    if (/$header/) { 
+    if (/$header/) {
+        $newfile="log-".$outfile.$i.".txt";
+        if (/$header\s+(.*)/) {
+            $debug && print "Matched $1\n";
+            $newfile=$1."-$i.txt";
+        }
+        $debug && print "Found header, opening $newfile.\n";
         $seen=1; 
     }; 
     if ($seen) {
+        $debug && print "Have header, writing $newfile.\n";
         unless ($outFH) {
-            open($outFH, ">", "log-".$outfile.$i.".txt") || die "can't open $outfile"."$i - $!";
+            open($outFH, ">:encoding(UTF-8)", "$newfile") || die "can't open $newfile - $!";
         }
-        print $outFH $_;
+        print $outFH $_, "\n";
     }
 }
