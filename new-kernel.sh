@@ -14,6 +14,7 @@ fi
 
 if [ -z "$version" ]; then
     echo "Please supply a version like 4.15.17 and re-run."
+    exit 2
 fi
 oldpwd=`pwd`
 cd /usr/src/linux
@@ -25,29 +26,42 @@ if [ $? -eq 0 ]; then
     rm linux
 fi
 cd /usr/src
-if [ ! -f ./linux-$version.tar.xz ]; then
-    echo $version | egrep -q '^4\.'
-    if [ $? -eq 0 ]; then
-        verspath="v4.x"
+base="linux-"
+if [ ! -f ./${base}${version}.tar.xz ]; then
+    if [ -f ./linux-source-$version/linux-source-$version.tar.bz2 ]; then
+        base="linux-source-"
+        if [ -L /usr/src/${base}${version}.tar.bz2 ]; then
+            sudo rm /usr/src/${base}${version}.tar.bz2
+        fi
+        sudo chown -R $USER:src /usr/src/${base}${version}
+        mv ./${base}${version}/${base}${version}.tar.bz2 /usr/src
+        tarcmd="tar -jxf ./${base}$version.tar.bz2"
     else
-        verspath="v5.x"
-    fi
-    wget https://cdn.kernel.org/pub/linux/kernel/${verspath}/linux-$version.tar.xz
-    if [ $? -ne 0 ]; then
-        echo "FAILED Downloading https://cdn.kernel.org/pub/linux/kernel/${verspath}/linux-$version.tar.xz"
-        echo "Please check the version and try again."
-        exit 2
+        echo $version | egrep -q '^4\.'
+        if [ $? -eq 0 ]; then
+            verspath="v4.x"
+        else
+            verspath="v5.x"
+        fi
+        wget https://cdn.kernel.org/pub/linux/kernel/${verspath}/linux-$version.tar.xz
+        if [ $? -ne 0 ]; then
+            echo "FAILED Downloading https://cdn.kernel.org/pub/linux/kernel/${verspath}/linux-$version.tar.xz"
+            echo "Please check the version and try again."
+            exit 2
+        fi
+        tarcmd="tar -Jxf ./${base}$version.tar.xz"
     fi
 else
     echo "skipping download of new kernel - it already exists locally"
 fi
-tar -Jxf ./linux-$version.tar.xz
+cd /usr/src
+$tarcmd
 if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to extract ./linux-$version.tar.xz - did it download correctly?"
+    echo "ERROR: Failed to run $tarcmd - did it download correctly?"
     exit 2
 fi
 rm /usr/src/linux
-ln -s /usr/src/linux-$version /usr/src/linux
+ln -s /usr/src/${base}$version /usr/src/linux
 linkstatus=$?
 cd linux
 if [ $? -ne 0 -o $linkstatus -ne 0 ]; then
@@ -78,29 +92,6 @@ if [ ! -r "$oldconfig" ]; then
     exit 2
 fi
 cp $oldconfig /usr/src/linux/.config
-
-#Try to add MuQSS patch
-# there are two possibilities - MuQSS only, or full CK.
-# so let's try both:
-muqsspatch=`ls -rt /usr/src/bfs/*Multi* |tail -1`
-shortvers=`echo $version | sed -e 's/\.[0-9]*$//'`
-if [ -f "/usr/src/bfs/patch-${shortvers}-ck1" ]; then
-    muqsspatch="/usr/src/bfs/patch-${shortvers}-ck1"
-fi
-if [ -n "$muqsspatch" ]; then
-    # we have a patch, but is it right?  From CK's versioning, I don't know how to tell
-    # maybe we should wget the latest every time from his site instead of reading here.
-    # TODO
-    # so in the meantime...
-    cd /usr/src/linux
-    output=`patch -F $FUZZ -p1 < ${muqsspatch}`
-    if [ $? -ne 0 ]; then
-        echo "ERROR: Can't patch MuQSS into this kernel."
-        echo "patch -F $FUZZ -p1 < ${muqsspatch}"
-        echo $output
-        exit 2
-    fi
-fi
 
 cd /usr/src/linux
 make oldconfig

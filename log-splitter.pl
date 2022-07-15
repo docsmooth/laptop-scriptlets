@@ -71,9 +71,9 @@ open(FH, "<", $filename) || die "can't open $filename - $!";
 while(<FH>) { 
     $_=~s/[\t\r\n]+$//;
     if (/$separator/ && $seen == 1) {
-        $debug && print "Found separator, closing $newfile.\n";
         $seen=0;
         $i++;
+        $debug && print "Found separator, closing $newfile and seen=$seen and i is $i.\n";
         if ($outFH) {
             close $outFH;
             undef $outFH;
@@ -85,11 +85,11 @@ while(<FH>) {
             $debug && print "Matched $1\n";
             $newfile=$1."-$i.txt";
         }
-        $debug && print "Found header, opening $newfile.\n";
         $seen=1; 
+        $debug && print "Found header, opening $newfile and seen is $seen.\n";
     }; 
     if ($seen) {
-        $debug && print "Have header, writing $newfile.\n";
+        #        $debug && print "Have header, writing $newfile.\n";
         unless ($outFH) {
             open($outFH, ">:encoding(UTF-8)", "$newfile") || die "can't open $newfile - $!";
         }

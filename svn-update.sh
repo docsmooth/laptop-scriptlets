@@ -82,6 +82,8 @@ GITPATH[o++]="/home/rob/workspace/vmware-bumblebee"
 GITPATH[o++]="/home/rob/workspace/vmware-host-modules"
 GITPATH[o++]="/home/rob/workspace/vmware-patch"
 GITPATH[o++]="/home/rob/workspace/wtf-console"
+GITPATH[o++]="/home/rob/workspace/Certipy"
+
 #GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
 for svnp in "${SVNPATH[@]}"; do 
