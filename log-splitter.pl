@@ -15,7 +15,7 @@ sub safeRegex($) {
 
 sub usage {
     print <<EOF
-log-splitter version 0.2
+log-splitter version 0.3
 This tool reads in a file (filename), and prints out log-<header>#.txt files
 The contents of each of those files is from the "header" value (inclusive) until
 the next "separator" value (excluded).
@@ -63,6 +63,7 @@ my $outFH;
 my $outfile = $filename.".".$header;
 my $newfile=$outfile;
 my $i=0;
+$outfile=~s/.*\///;
 $outfile=~s/[^a-zA-Z0-9\-]*//g;
 $header=safeRegex($header);
 
