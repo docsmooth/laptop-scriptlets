@@ -145,7 +145,7 @@ if [ -z "$newpkg" -o ! -f "$newpkg" ]; then
         exit 8
     fi
     # rewrite version from 5.19.0 to 5.19.whatever so the packages match below
-    version=`echo $newpkg | sed -r -e 's/.*('${newvers}'\.[[:digit:]]*).*/\1/'`
+    version=`echo $newpkg | sed -n -r -e 's/.*('${newvers}'\.[[:digit:]]*).*/\1/p'`
 fi
 fullvers=`echo $newpkg | sed -n -r -e 's/.*('${newvers}'\.[[:digit:]]*\.[[:digit:]]*).*/\1/p'`
 dpkg-deb -R $newpkg /tmp/extracted-files/
