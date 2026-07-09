@@ -19,9 +19,11 @@ echo $@ | grep -q workonly
 errcode=$?
 if [ -n "$workonly" ]; then
     workonly=1
+    personalonly=0
     echo "Doing only work branches - env."
 elif [ "$errcode" = "0" ]; then
     workonly=1
+    personalonly=0
     echo "Doing only work branches - switch."
 else
     workonly=0
@@ -51,30 +53,40 @@ MYPATH=`pwd`
 # Paths where svn repos live.
 #SVNPATH[i++]="/home/rob/workspace/branches/likewise-oem-lexmark"
 # Paths where git repos live
-GITPATH[o++]="/home/rob/workspace/ProServe"
+GITPATH[o++]="/home/rob/workspace/proserve/adbridge"
+GITPATH[o++]="/home/rob/workspace/proserve/pbpsapi"
+GITPATH[o++]="/home/rob/workspace/proserve/cyberark-migration-toolkit"
+GITPATH[o++]="/home/rob/workspace/proserve/entraid-unified"
+GITPATH[o++]="/home/rob/workspace/proserve/entraid-usertest"
+GITPATH[o++]="/home/rob/workspace/proserve/pws-mcp-server"
+GITPATH[o++]="/home/rob/workspace/proserve/epm"
+GITPATH[o++]="/home/rob/workspace/proserve/password-safe"
+GITPATH[o++]="/home/rob/workspace/proserve/pmul"
+GITPATH[o++]="/home/rob/workspace/proserve/pre-check"
+GITPATH[o++]="/home/rob/workspace/proserve/secure-remote-access"
 GITPATH[o++]="/home/rob/workspace/arbtt-chart"
 GITPATH[o++]="/home/rob/workspace/awx"
 GITPATH[o++]="/home/rob/workspace/algo"
-GITPATH[o++]="/home/rob/workspace/branches/PBIS-Enterprise"
-GITPATH[o++]="/home/rob/workspace/branches/PBIS-Platform"
-GITPATH[o++]="/home/rob/workspace/branches/pbis"
-GITPATH[o++]="/home/rob/workspace/btlab"
+GITPATH[o++]="/home/rob/workspace/branches/adbridge"
 GITPATH[o++]="/home/rob/workspace/creepy"
 GITPATH[o++]="/home/rob/workspace/esxidown"
 GITPATH[o++]="/home/rob/workspace/exrex"
 GITPATH[o++]="/home/rob/workspace/fix-svg"
 GITPATH[o++]="/home/rob/workspace/grive2"
+GITPATH[o++]="/home/rob/.nvm"
 GITPATH[o++]="/home/rob/workspace/onedrive"
 GITPATH[o++]="/home/rob/workspace/rob-onedrive"
 GITPATH[o++]="/home/rob/workspace/owl"
-GITPATH[o++]="/home/rob/workspace/pbrun-timing"
+GITPATH[o++]="/home/rob/workspace/phil-hands-off-debian"
+GITPATH[o++]="/home/rob/workspace/pmul-docsmooth-policy"
+GITPATH[o++]="/home/rob/workspace/docsmooth-homelab-ansible"
+GITPATH[o++]="/home/rob/workspace/1column-diff"
 GITPATH[o++]="/home/rob/workspace/pytappd"
 GITPATH[o++]="/home/rob/workspace/rainbowstream"
 GITPATH[o++]="/home/rob/workspace/rainbarf"
 GITPATH[o++]="/home/rob/workspace/rtm"
 GITPATH[o++]="/home/rob/workspace/rtm-cli"
 GITPATH[o++]="/home/rob/workspace/solarized"
-GITPATH[o++]="/home/rob/workspace/siplcs"
 GITPATH[o++]="/home/rob/workspace/strava-cli"
 GITPATH[o++]="/home/rob/workspace/strava-cli"
 GITPATH[o++]="/home/rob/workspace/tac_plus"
@@ -83,11 +95,12 @@ GITPATH[o++]="/home/rob/workspace/vmware-host-modules"
 GITPATH[o++]="/home/rob/workspace/vmware-patch"
 GITPATH[o++]="/home/rob/workspace/wtf-console"
 GITPATH[o++]="/home/rob/workspace/Certipy"
+GITPATH[o++]="/home/rob/.claude/skills/github-cli-claude-skill"
 
 #GITPATH[o++]="/net/192.168.0.21/home/rob/programming/rainbarf"
 
 for svnp in "${SVNPATH[@]}"; do 
-    echo $svnp | egrep -q '(branches|pbis|Deployment)'
+    echo $svnp | egrep -q '(branches|pbis|Deployment|adb|proserve)'
     if [ $? -eq 0 ]; then
         #this is a work branch
         work=1
@@ -125,47 +138,51 @@ for gitp in "${GITPATH[@]}"; do
         if [ $OUTPUT -eq 1 ]; then
             pwd
         fi
-        RESULT=`git pull`
+        #RESULT=`git pull`
+        RESULT=""
+        git pull --all
         if [ $? -ne 0 ]; then
             echo $RESULT
             ERRCODE=`expr $ERRCODE + 1`
         elif [ "$OUTPUT" -eq 1 ]; then
             echo $RESULT
         fi
-        git branch -r | grep -q upstream
-        if [ $? -eq 0 ]; then
-            # we have an upstream branch worth tracking
-            URL=`git remote show upstream |awk '/Push/ { print $NF }'`
-            #RESULT=`git merge upstream/master`
-            RESULT=`git pull "$URL"`
-            if [ $? -ne 0 ]; then
-                echo $RESULT
-                ERRCODE=`expr $ERRCODE + 1`
-            elif [ $OUTPUT -eq 1 ]; then
-                echo $RESULT
-            fi
-        fi
-        git branch | awk '{ print $NF }' | while read branch;
-        do
-            git checkout "$branch"
-            RESULT=`git pull`
-            if [ $? -ne 0 ]; then
-                echo $RESULT
-                ERRCODE=`expr $ERRCODE + 1`
-            elif [ $OUTPUT -eq 1 ]; then
-                echo $RESULT
-            fi
-            #if [ "$branch" != "master" ]; then
-            #    RESULT=`git merge master`
-            #    if [ $? -ne 0 ]; then
-            #        echo $RESULT
-            #        ERRCODE=`expr $ERRCODE + 1`
-            #    elif [ "$OUTPUT" -eq 1 ]; then
-            #        echo $RESULT
-            #    fi
-            #fi
-        done
-        git checkout master
+        #git branch -r | grep -q upstream
+        #if [ $? -eq 0 ]; then
+        #    # we have an upstream branch worth tracking
+        #    URL=`git remote show upstream |awk '/Push/ { print $NF }'`
+        #    #RESULT=`git merge upstream/master`
+        #    git pull "$URL"
+        #    #RESULT=`git pull "$URL"`
+        #    if [ $? -ne 0 ]; then
+        #        echo $RESULT
+        #        ERRCODE=`expr $ERRCODE + 1`
+        #    elif [ $OUTPUT -eq 1 ]; then
+        #        echo $RESULT
+        #    fi
+        #fi
+        #git branch | awk '{ print $NF }' | while read branch;
+        #do
+        #    git checkout "$branch"
+        #    #RESULT=`git pull`
+        #    git pull
+        #    if [ $? -ne 0 ]; then
+        #        echo $RESULT
+        #        ERRCODE=`expr $ERRCODE + 1`
+        #    elif [ $OUTPUT -eq 1 ]; then
+        #        echo $RESULT
+        #    fi
+        #    #if [ "$branch" != "master" ]; then
+        #    #    RESULT=`git merge master`
+        #    #    if [ $? -ne 0 ]; then
+        #    #        echo $RESULT
+        #    #        ERRCODE=`expr $ERRCODE + 1`
+        #    #    elif [ "$OUTPUT" -eq 1 ]; then
+        #    #        echo $RESULT
+        #    #    fi
+        #    #fi
+        #done
+        #git checkout master
 
         pwd
         cd $MYPATH
